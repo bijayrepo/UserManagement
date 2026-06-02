@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -187,7 +187,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     // Subscribe to auth state for loading indicator
     this.authService.authState$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(state => {
+      .subscribe((state: any) => {
         this.isLoading = state.loading;
         this.errorMessage = state.error || '';
       });
@@ -213,7 +213,7 @@ export class LoginComponent implements OnInit, OnDestroy {
           next: () => {
             this.router.navigate(['/dashboard']);
           },
-          error: (error) => {
+          error: (error: any) => {
             console.error('Login failed:', error);
           }
         });

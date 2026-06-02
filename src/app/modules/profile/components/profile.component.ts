@@ -88,7 +88,7 @@ import { User } from '../../../core/models';
                   id="email"
                   formControlName="email"
                   class="form-control"
-                  disabled
+                  [disabled]="true"
                 />
               </div>
 
@@ -407,7 +407,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.authService.authState$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(state => {
+      .subscribe((state: any) => {
         if (state.user) {
           this.currentUserId = state.user.id;
           this.loadUserProfile();

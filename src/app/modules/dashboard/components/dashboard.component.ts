@@ -1,10 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { User } from '../../core/models';
+import { User } from '../../../core/models';
 
 @Component({
   selector: 'app-dashboard',
@@ -242,7 +242,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.authService.authState$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(state => {
+      .subscribe((state: any) => {
         this.currentUser = state.user;
       });
   }

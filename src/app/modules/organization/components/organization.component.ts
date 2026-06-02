@@ -478,7 +478,7 @@ export class OrganizationComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.authService.authState$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(state => {
+      .subscribe((state: any) => {
         if (state.user) {
           this.organizationId = state.user.organizationId;
           this.loadOrganization();
