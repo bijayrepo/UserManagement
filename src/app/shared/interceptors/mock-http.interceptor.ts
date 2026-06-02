@@ -2,87 +2,41 @@ import { Injectable } from '@angular/core';
 import { HttpRequest, HttpResponse, HttpHandler, HttpEvent } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
+import { TestData } from '../test-data/test-data';
 
 /**
  * Mock HTTP Interceptor for development and testing
  * Replace with real API calls in production
+ *
+ * Uses test data from TestData class
  */
 @Injectable()
 export class MockHttpInterceptor implements HttpHandler {
-  private mockUsers = {
-    'user-123': {
-      id: 'user-123',
-      email: 'john@example.com',
-      firstName: 'John',
-      lastName: 'Doe',
-      profilePhoto: 'https://via.placeholder.com/150',
-      phoneNumber: '+1-555-123-4567',
-      organizationId: 'org-123',
-      role: 'user',
-      department: 'Engineering',
-      bio: 'Full-stack developer',
-      address: '123 Main St',
-      city: 'New York',
-      country: 'USA',
-      zipCode: '10001',
-      isActive: true,
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-01')
-    }
-  };
-
-  private mockOrganization = {
-    'org-123': {
-      id: 'org-123',
-      name: 'Acme Corporation',
-      description: 'Leading technology company',
-      logo: 'https://via.placeholder.com/100',
-      email: 'contact@acme.com',
-      phoneNumber: '+1-800-123-4567',
-      address: '789 Corporate Blvd',
-      city: 'New York',
-      country: 'USA',
-      zipCode: '10001',
-      website: 'https://acme.com',
-      isActive: true,
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-01')
-    }
-  };
-
-  private mockMembers = [
-    {
-      id: 'member-1',
-      userId: 'user-123',
-      organizationId: 'org-123',
-      role: 'admin',
-      joinedAt: new Date('2024-01-01')
-    },
-    {
-      id: 'member-2',
-      userId: 'user-456',
-      organizationId: 'org-123',
-      role: 'manager',
-      joinedAt: new Date('2024-01-15')
-    },
-    {
-      id: 'member-3',
-      userId: 'user-789',
-      organizationId: 'org-123',
-      role: 'user',
-      joinedAt: new Date('2024-01-20')
-    }
-  ];
+  // Initialize mock data from TestData
+  private mockUsers = TestData.SAMPLE_USERS;
+  private mockOrganization = TestData.SAMPLE_ORGANIZATIONS;
+  private mockMembers = [...TestData.SAMPLE_MEMBERS];
 
   handle(req: HttpRequest<any>): Observable<HttpEvent<any>> {
     // Handle authentication login
+    // In mock mode, accept any credentials
     if (req.url.includes('/api/auth/login') && req.method === 'POST') {
+      const loginBody = req.body;
+
+      // Find user by email from test credentials, default to first user
+      let selectedUser = TestData.getSampleUser('user-001');
+      const testCred = TestData.TEST_CREDENTIALS.find(c => c.email === loginBody.email);
+
+      if (testCred) {
+        selectedUser = TestData.getSampleUser(testCred.userId);
+      }
+
       return of(
         new HttpResponse({
           status: 200,
           body: {
-            accessToken: 'mock-jwt-token-' + Date.now(),
-            user: this.mockUsers['user-123']
+            accessToken: 'mock-jwt-token-' + Date.now() + '-' + Math.random().toString(36).substring(7),
+            user: selectedUser || TestData.getSampleUser('user-001')
           }
         })
       ).pipe(delay(500));
@@ -91,10 +45,13 @@ export class MockHttpInterceptor implements HttpHandler {
     // Handle get user profile
     if (req.url.includes('/api/users/') && req.method === 'GET') {
       const userId = req.url.split('/').pop();
+      const user = this.mockUsers[userId as keyof typeof this.mockUsers] ||
+                   TestData.getSampleUser('user-001');
+
       return of(
         new HttpResponse({
           status: 200,
-          body: this.mockUsers[userId as keyof typeof this.mockUsers] || this.mockUsers['user-123']
+          body: user
         })
       ).pipe(delay(300));
     }
@@ -102,12 +59,18 @@ export class MockHttpInterceptor implements HttpHandler {
     // Handle update user profile
     if (req.url.includes('/api/users/') && req.method === 'PUT') {
       const userId = req.url.split('/').pop();
+      const existingUser = this.mockUsers[userId as keyof typeof this.mockUsers] ||
+                           TestData.getSampleUser('user-001');
+
       const updatedUser = {
-        ...this.mockUsers['user-123'],
+        ...existingUser,
         ...req.body,
-        id: userId,
         updatedAt: new Date()
       };
+
+      // Update in memory
+      this.mockUsers[userId as keyof typeof this.mockUsers] = updatedUser;
+
       return of(
         new HttpResponse({
           status: 200,
@@ -118,13 +81,23 @@ export class MockHttpInterceptor implements HttpHandler {
 
     // Handle upload profile photo
     if (req.url.includes('/api/users/') && req.url.includes('upload-photo') && req.method === 'POST') {
+      const userId = req.url.split('/')[3]; // Extract userId from URL
+      const existingUser = this.mockUsers[userId as keyof typeof this.mockUsers] ||
+                           TestData.getSampleUser('user-001');
+
+      const updatedUser = {
+        ...existingUser,
+        profilePhoto: 'https://i.pravatar.cc/150?img=' + Math.floor(Math.random() * 70),
+        updatedAt: new Date()
+      };
+
+      // Update in memory
+      this.mockUsers[userId as keyof typeof this.mockUsers] = updatedUser;
+
       return of(
         new HttpResponse({
           status: 200,
-          body: {
-            ...this.mockUsers['user-123'],
-            profilePhoto: 'https://via.placeholder.com/150?updated=' + Date.now()
-          }
+          body: updatedUser
         })
       ).pipe(delay(1000));
     }
@@ -132,10 +105,13 @@ export class MockHttpInterceptor implements HttpHandler {
     // Handle get organization
     if (req.url.includes('/api/organizations/') && !req.url.includes('members') && req.method === 'GET') {
       const orgId = req.url.split('/').pop();
+      const org = this.mockOrganization[orgId as keyof typeof this.mockOrganization] ||
+                  TestData.getSampleOrganization('org-001');
+
       return of(
         new HttpResponse({
           status: 200,
-          body: this.mockOrganization[orgId as keyof typeof this.mockOrganization] || this.mockOrganization['org-123']
+          body: org
         })
       ).pipe(delay(300));
     }
@@ -143,12 +119,18 @@ export class MockHttpInterceptor implements HttpHandler {
     // Handle update organization
     if (req.url.includes('/api/organizations/') && !req.url.includes('members') && req.method === 'PUT') {
       const orgId = req.url.split('/').pop();
+      const existingOrg = this.mockOrganization[orgId as keyof typeof this.mockOrganization] ||
+                          TestData.getSampleOrganization('org-001');
+
       const updatedOrg = {
-        ...this.mockOrganization['org-123'],
+        ...existingOrg,
         ...req.body,
-        id: orgId,
         updatedAt: new Date()
       };
+
+      // Update in memory
+      this.mockOrganization[orgId as keyof typeof this.mockOrganization] = updatedOrg;
+
       return of(
         new HttpResponse({
           status: 200,
@@ -158,11 +140,14 @@ export class MockHttpInterceptor implements HttpHandler {
     }
 
     // Handle get organization members
-    if (req.url.includes('/api/organizations/') && req.url.includes('members') && req.method === 'GET' && !req.url.includes('DELETE')) {
+    if (req.url.includes('/api/organizations/') && req.url.includes('members') && req.method === 'GET') {
+      const orgId = req.url.split('/')[4]; // Extract org ID from URL
+      const members = TestData.getMembersByOrganization(orgId);
+
       return of(
         new HttpResponse({
           status: 200,
-          body: this.mockMembers
+          body: members
         })
       ).pipe(delay(300));
     }
@@ -175,6 +160,7 @@ export class MockHttpInterceptor implements HttpHandler {
         joinedAt: new Date()
       };
       this.mockMembers.push(newMember);
+
       return of(
         new HttpResponse({
           status: 201,
@@ -187,6 +173,7 @@ export class MockHttpInterceptor implements HttpHandler {
     if (req.url.includes('/api/organizations/') && req.url.includes('members') && req.method === 'DELETE') {
       const memberId = req.url.split('/').pop();
       this.mockMembers = this.mockMembers.filter(m => m.id !== memberId);
+
       return of(
         new HttpResponse({
           status: 204,

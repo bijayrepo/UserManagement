@@ -104,6 +104,75 @@ src/
 - `npm test` - Run unit tests
 - `npm run lint` - Run linting
 
+## Testing
+
+### Test Data
+
+The application includes comprehensive mock data for development and testing:
+
+- **5 Sample Users** with different roles and organizations
+- **3 Sample Organizations** with complete details
+- **5 Test Credentials** for login testing
+- **Mock HTTP Interceptor** that returns test data for all API calls
+
+### Test Credentials
+
+Use any of these credentials to login (in mock mode, any email/password works):
+
+| Email | Password | Role | Organization |
+|-------|----------|------|---|
+| john.doe@acme.com | password123 | Admin | Acme Corp |
+| jane.smith@acme.com | password123 | Manager | Acme Corp |
+| mike.johnson@acme.com | password123 | User | Acme Corp |
+| sarah.williams@acme.com | password123 | Manager | Tech Innovations |
+| david.brown@acme.com | password123 | User | Tech Innovations |
+
+### Quick Start Testing
+
+1. Run the application:
+   ```bash
+   npm start
+   ```
+
+2. Login with any test credential above
+
+3. Test features:
+   - Navigate to Profile and update information
+   - Upload a profile photo
+   - View Organization and members
+   - Test multi-organization scenarios
+
+### Test Documentation
+
+- **[TEST_DATA_GUIDE.md](TEST_DATA_GUIDE.md)** - Detailed guide on available test data and usage
+- **[TESTING_GUIDE.md](TESTING_GUIDE.md)** - 15 complete test scenarios with step-by-step instructions
+- **[TEST_DATA_INTEGRATION.md](TEST_DATA_INTEGRATION.md)** - Technical details of test data integration
+
+### Helper Methods
+
+The `TestData` class provides convenient methods for accessing test data:
+
+```typescript
+// Get specific user
+TestData.getSampleUser('user-001');
+
+// Get all users
+TestData.getAllSampleUsers();
+
+// Get users by organization
+TestData.getUsersByOrganization('org-001');
+
+// Get random user
+TestData.getRandomUser();
+
+// Get organization
+TestData.getSampleOrganization('org-001');
+
+// Generate test update data
+TestData.generateUserUpdate();
+TestData.generateOrgUpdate();
+```
+
 ## Module Details
 
 ### Auth Module
