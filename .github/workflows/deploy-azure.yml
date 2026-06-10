@@ -1,0 +1,121 @@
+name: Deploy to Azure App Service
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+    types: [opened, synchronize, reopened]
+
+env:
+  AZURE_WEBAPP_NAME: user-management
+  AZURE_RESOURCE_GROUP: WebApp
+  NODE_VERSION: 18.x
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint code
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Run tests
+        run: npm run test -- --watch=false --browsers=ChromeHeadless
+        continue-on-error: true
+
+      - name: Build production bundle
+        run: npm run build -- --configuration production
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: dist/user-management/
+          retention-days: 5
+
+  deploy:
+    name: Deploy to Azure
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+          path: dist/user-management/
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: dist/user-management/
+          slot-name: production
+
+      - name: Logout from Azure
+        run: az logout
+        if: always()
+
+      - name: Notify deployment success
+        if: success()
+        run: echo "✅ Deployment to Azure App Service successful!"
+
+      - name: Notify deployment failure
+        if: failure()
+        run: echo "❌ Deployment to Azure App Service failed!"
+
+  validate:
+    name: Validate Deployment
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Health check on deployed app
+        run: |
+          WEBAPP_URL="https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net"
+          for i in {1..5}; do
+            echo "Health check attempt $i..."
+            if curl -f --silent --show-error "$WEBAPP_URL" > /dev/null 2>&1; then
+              echo "✅ Web app is responding"
+              exit 0
+            fi
+            echo "Waiting 10 seconds before retry..."
+            sleep 10
+          done
+          echo "❌ Web app health check failed"
+          exit 1
