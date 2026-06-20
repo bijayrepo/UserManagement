@@ -48,5 +48,4 @@ jobs:
         with:
           name: build-artifact
           path: dist/user-management/
-          retention-days: 5
           run: echo "Build Successfully"
