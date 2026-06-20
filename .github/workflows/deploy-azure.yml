@@ -33,76 +33,75 @@ jobs:
       - name: Success message
         if: success()
         run: echo "✅ PR build successful"
-
-deploy:
-  if: github.event_name == 'push'
-  runs-on: ubuntu-latest
-
-  steps:
-    - name: Checkout merged code
-      uses: actions/checkout@v4
-
-    - name: Setup Node
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-
-    - name: Install dependencies
-      run: npm install
-
-    # ✅ Build Angular
-    - name: Build Angular app
-      run: npm run build -- --configuration production --base-href /user-management/
-
-    # ✅ Debug: see actual output
-    - name: Show dist structure
-      run: ls -R dist
-
-    # ✅ Detect folder dynamically
-    - name: Set build folder
-      id: buildfolder
-      run: |
-        APP_FOLDER=$(ls dist | head -n 1)
-        echo "APP_FOLDER=$APP_FOLDER" >> $GITHUB_ENV
-        echo "Detected Angular app folder: $APP_FOLDER"
-
-    # ✅ Add web.config
-    - name: Add web.config
-      run: |
-        cat <<EOF > dist/$APP_FOLDER/web.config
-        <?xml version="1.0" encoding="utf-8"?>
-        <configuration>
-          <system.webServer>
-            <defaultDocument>
-              <files>
-                <clear />
-                <add value="index.html" />
-              </files>
-            </defaultDocument>
-            <rewrite>
-              <rules>
-                <rule name="Angular Routes" stopProcessing="true">
-                  <match url=".*" />
-                  <conditions>
-                    <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
-                    <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
-                  </conditions>
-                  <action type="Rewrite" url="/user-management/index.html" />
-                </rule>
-              </rules>
-            </rewrite>
-          </system.webServer>
-        </configuration>
-        EOF
-
-    # ✅ Deploy correct folder
-    - name: Deploy to Azure App Service
-      uses: azure/webapps-deploy@v3
-      with:
-        app-name: userportal
-        publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E37A9E4C5EBB4F62B5280ADFDB8E3561 }}
-        package: dist/${{ env.APP_FOLDER }}
-
-    - name: Success message
-      if: success()
-      run: echo "✅ Angular app deployed successfully!"
+  deploy:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+  
+    steps:
+      - name: Checkout merged code
+        uses: actions/checkout@v4
+  
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+  
+      - name: Install dependencies
+        run: npm install
+  
+      # ✅ Build Angular
+      - name: Build Angular app
+        run: npm run build -- --configuration production --base-href /user-management/
+  
+      # ✅ Debug: see actual output
+      - name: Show dist structure
+        run: ls -R dist
+  
+      # ✅ Detect folder dynamically
+      - name: Set build folder
+        id: buildfolder
+        run: |
+          APP_FOLDER=$(ls dist | head -n 1)
+          echo "APP_FOLDER=$APP_FOLDER" >> $GITHUB_ENV
+          echo "Detected Angular app folder: $APP_FOLDER"
+  
+      # ✅ Add web.config
+      - name: Add web.config
+        run: |
+          cat <<EOF > dist/$APP_FOLDER/web.config
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <system.webServer>
+              <defaultDocument>
+                <files>
+                  <clear />
+                  <add value="index.html" />
+                </files>
+              </defaultDocument>
+              <rewrite>
+                <rules>
+                  <rule name="Angular Routes" stopProcessing="true">
+                    <match url=".*" />
+                    <conditions>
+                      <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+                      <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+                    </conditions>
+                    <action type="Rewrite" url="/user-management/index.html" />
+                  </rule>
+                </rules>
+              </rewrite>
+            </system.webServer>
+          </configuration>
+          EOF
+  
+      # ✅ Deploy correct folder
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: userportal
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E37A9E4C5EBB4F62B5280ADFDB8E3561 }}
+          package: dist/${{ env.APP_FOLDER }}
+  
+      - name: Success message
+        if: success()
+        run: echo "✅ Angular app deployed successfully!"
