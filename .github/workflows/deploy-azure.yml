@@ -28,7 +28,7 @@ jobs:
         run: npm install
 
       - name: Build Angular app
-        run: npm run build -- --configuration production
+        run: npm run build
 
       - name: Success message
         if: success()
@@ -54,7 +54,7 @@ jobs:
 
       # ✅ Build Angular into dist/user-management
       - name: Build Angular app
-        run: npm run build -- --configuration production --base-href /user-management/
+        run: npm run build
 
       # ✅ Verify build output
       - name: Check dist folder
