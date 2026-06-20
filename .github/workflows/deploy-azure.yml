@@ -6,11 +6,11 @@ on:
     types: [opened, synchronize, reopened]
 
   push:
-    branches: [dev]   # triggers after merge
+    branches: [dev]   # runs after PR merge
 
 jobs:
 
-  # ✅ PR Validation Build
+  # ✅ PR BUILD VALIDATION
   pr-build:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -33,42 +33,41 @@ jobs:
       - name: Success message
         if: success()
         run: echo "✅ PR build successful"
+
+
+  # ✅ DEPLOY AFTER MERGE
   deploy:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
-  
+
     steps:
       - name: Checkout merged code
         uses: actions/checkout@v4
-  
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-  
+
       - name: Install dependencies
         run: npm install
-  
-      # ✅ Build Angular
+
+      # ✅ Build Angular into dist/user-management
       - name: Build Angular app
         run: npm run build -- --configuration production --base-href /user-management/
-  
-      # ✅ Debug: see actual output
-      - name: Show dist structure
+
+      # ✅ Verify build output
+      - name: Check dist folder
         run: ls -R dist
-  
-      # ✅ Detect folder dynamically
-      - name: Set build folder
-        id: buildfolder
+
+      # ✅ Ensure correct folder exists
+      - name: Create folder if missing
+        run: mkdir -p dist/user-management
+
+      # ✅ Add web.config inside SAME folder
+      - name: Create web.config
         run: |
-          APP_FOLDER=$(ls dist | head -n 1)
-          echo "APP_FOLDER=$APP_FOLDER" >> $GITHUB_ENV
-          echo "Detected Angular app folder: $APP_FOLDER"
-  
-      # ✅ Add web.config
-      - name: Add web.config
-        run: |
-          cat <<EOF > dist/$APP_FOLDER/web.config
+          cat <<EOF > dist/web.config
           <?xml version="1.0" encoding="utf-8"?>
           <configuration>
             <system.webServer>
@@ -93,15 +92,15 @@ jobs:
             </system.webServer>
           </configuration>
           EOF
-  
-      # ✅ Deploy correct folder
+
+      # ✅ Deploy EXACT folder
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
         with:
           app-name: userportal
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E37A9E4C5EBB4F62B5280ADFDB8E3561 }}
-          package: dist/${{ env.APP_FOLDER }}
-  
+          package: dist/
+
       - name: Success message
         if: success()
         run: echo "✅ Angular app deployed successfully!"
