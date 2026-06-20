@@ -13,7 +13,7 @@ import { takeUntil } from 'rxjs/operators';
   template: `
     <div class="login-container">
       <div class="login-card">
-        <h1>User Management System</h1>
+        <h1>User Login Portal</h1>
         <p class="subtitle">Login to your account</p>
 
         <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
