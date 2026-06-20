@@ -1,4 +1,4 @@
-name: Angular CI/CD to Azure
+name: user-management
 
 on:
   pull_request:
@@ -58,7 +58,7 @@ jobs:
       # ✅ Add web.config (fixes 403 / permission issue)
       - name: Add web.config
         run: |
-          cat <<EOF > dist/<your-angular-app-name>/web.config
+          cat <<EOF > dist/user-management/web.config
           <?xml version="1.0" encoding="utf-8"?>
           <configuration>
             <system.webServer>
@@ -94,7 +94,7 @@ jobs:
         with:
           app-name: userportal
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E37A9E4C5EBB4F62B5280ADFDB8E3561 }}
-          package: ./user-management
+          package: ./dist/user-management
 
       - name: Success message
         if: success()
