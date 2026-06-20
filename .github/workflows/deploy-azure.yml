@@ -94,7 +94,7 @@ jobs:
         with:
           app-name: userportal
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E37A9E4C5EBB4F62B5280ADFDB8E3561 }}
-          package: ./dist/user-management
+          package: ./user-management
 
       - name: Success message
         if: success()
