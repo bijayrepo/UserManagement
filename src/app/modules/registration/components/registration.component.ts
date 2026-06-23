@@ -2,6 +2,9 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
+import { RegistrationRequest } from '@app/core/models';
+import { RegistrationService } from '@app/core/services/registration.service';
+import { Router } from '@angular/router';
 
 @Component({
   standalone:true,
@@ -16,7 +19,11 @@ export class RegistrationComponent {
 
   registrationForm: FormGroup;
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {
+  constructor(private fb: FormBuilder, 
+    private http: HttpClient,
+    private registrationService: RegistrationService,
+     private router: Router
+  ) {
 
     this.registrationForm = this.fb.group({
       // Step 1
@@ -45,8 +52,10 @@ export class RegistrationComponent {
       ];
 
       const isValid = step1Controls.every(c => this.registrationForm.get(c)?.valid);
+      console.log(isValid);
 
       if (isValid) {
+              console.log("here");
         this.step = 2;
       } else {
         step1Controls.forEach(c => this.registrationForm.get(c)?.markAsTouched());
@@ -58,23 +67,30 @@ export class RegistrationComponent {
     this.step = 1;
   }
 
-  submit() {
-    if (this.registrationForm.valid) {
-      const payload = this.registrationForm.value;
+  submit(): void {
 
-      this.http.post('https://your-api-url.com/register', payload)
-        .subscribe({
-          next: res => {
-            console.log('Success', res);
-            alert('Registration successful');
-          },
-          error: err => {
-            console.error(err);
-            alert('Registration failed');
-          }
-        });
-    } else {
-      this.registrationForm.markAllAsTouched();
-    }
+  if (this.registrationForm.invalid) {
+    this.registrationForm.markAllAsTouched();
+    return;
   }
+
+  const payload: RegistrationRequest = this.registrationForm.value;
+
+  this.registrationService.addUser(payload).subscribe({
+    next: (response: any) => {
+      console.log('Registration successful', response);
+
+      alert('Registration successful');
+
+      //this.registrationForm.reset();
+      //this.step = 1;
+      this.router.navigate(['/auth/login']);
+    },
+    error: (error: any) => {
+      console.error('Registration failed', error);
+
+      alert('Registration failed');
+    }
+  });
+}
 }
