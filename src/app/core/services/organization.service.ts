@@ -7,7 +7,7 @@ import { Organization, OrganizationMember } from '../models';
   providedIn: 'root'
 })
 export class OrganizationService {
-  private apiUrl = '/api/organizations';
+  private apiUrl = '/organizations';
 
   constructor(private http: HttpClient) {}
 
