@@ -22,6 +22,10 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'registration',
+    loadChildren: ()=> import('./modules/registration/registration.module').then(m => m.RegistrationModule)
+  },
+  {
     path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full'
@@ -29,5 +33,7 @@ export const routes: Routes = [
   {
     path: '**',
     redirectTo: 'dashboard'
-  }
+  },
+  { path: '**', 
+    redirectTo: 'auth/login' }
 ];
