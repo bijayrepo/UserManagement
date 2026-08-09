@@ -1,24 +1,25 @@
 export interface User {
-  id: string;
+  user_id: string;
+  username: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  profilePhoto?: string;
-  phoneNumber?: string;
-  organizationId: string;
-  role: UserRole;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  first_name: string;
+  last_name: string;
+  phone_number: string;
+  date_of_birth: string; // or Date if you convert it
+  gender: string;
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  postal_code: string;
+  role:string;
 }
 
 export interface UserProfile extends User {
   department?: string;
   bio?: string;
-  address?: string;
-  city?: string;
-  country?: string;
   zipCode?: string;
+  profilePhoto:string;
 }
 
 export enum UserRole {
@@ -33,8 +34,12 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  accessToken: string;
-  user: User;
+  success: boolean;
+  message: string;
+  data: User;
+  user:User;
+  errors: any;
+  accessToken:any;
 }
 
 export interface AuthState {

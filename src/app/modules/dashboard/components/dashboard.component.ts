@@ -27,6 +27,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((state: any) => {
         this.currentUser = state.user;
+        console.log(state);
       });
   }
 
