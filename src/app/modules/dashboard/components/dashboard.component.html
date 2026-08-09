@@ -12,8 +12,8 @@
 
   <div class="dashboard-content">
     <div class="welcome-section">
-      <h1>Welcome, {{ currentUser?.firstName }}!</h1>
-      <p>Organization: {{ currentUser?.organizationId }}</p>
+      <h1>Welcome, {{ currentUser?.first_name }}!</h1>
+      <p>Organization: {{ currentUser?.user_id }}</p>
     </div>
 
     <div class="stats-grid">
@@ -25,13 +25,13 @@
 
       <div class="stat-card">
         <h3>Organization</h3>
-        <p class="stat-value">{{ currentUser?.organizationId }}</p>
+        <p class="stat-value">{{ currentUser?.user_id }}</p>
         <a routerLink="/organization" class="stat-link">View Organization →</a>
       </div>
 
       <div class="stat-card">
         <h3>Role</h3>
-        <p class="stat-value">{{ currentUser?.role | uppercase }}</p>
+        <p class="stat-value">{{ currentUser?.user_id | uppercase }}</p>
         <a href="#" class="stat-link">View Permissions →</a>
       </div>
     </div>

@@ -24,6 +24,7 @@ export class AuthService {
     const token = localStorage.getItem('accessToken');
     const user = localStorage.getItem('user');
 
+    console.log(user,"from");
     if (token && user) {
       this.authStateSubject.next({
         isAuthenticated: true,
@@ -63,18 +64,19 @@ export class AuthService {
       loading: true
     });
 
-    const params = new HttpParams()
-      .set('username', credentials.email)
-      .set('password', credentials.password);
+      const body = {
+      email: credentials.email,
+      password: credentials.password
+      };
 
-    return this.http.get<LoginResponse>(`${this.apiUrl}/login`, { params }).pipe(
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, body).pipe(
       tap((response) => {
         localStorage.setItem('accessToken', response.accessToken);
-        localStorage.setItem('user', JSON.stringify(response.user));
+        localStorage.setItem('user', JSON.stringify(response.data));
 
         this.authStateSubject.next({
           isAuthenticated: true,
-          user: response.user,
+          user: response.data,
           loading: false
         });
       }),
@@ -111,18 +113,18 @@ export class AuthService {
     return this.authStateSubject.value.user;
   }
 
-  refresh(): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/refresh`, {})
-      .pipe(
-        tap(response => {
-          localStorage.setItem('accessToken', response.accessToken);
-          localStorage.setItem('user', JSON.stringify(response.user));
-          this.authStateSubject.next({
-            isAuthenticated: true,
-            user: response.user,
-            loading: false
-          });
-        })
-      );
-  }
+  // refresh(): Observable<LoginResponse> {
+  //   return this.http.post<LoginResponse>(`${this.apiUrl}/refresh`, {})
+  //     .pipe(
+  //       tap(response => {
+  //         localStorage.setItem('accessToken', response.accessToken);
+  //         localStorage.setItem('user', JSON.stringify(response.user));
+  //         this.authStateSubject.next({
+  //           isAuthenticated: true,
+  //           user: response.user,
+  //           loading: false
+  //         });
+  //       })
+  //     );
+  // }
 }
